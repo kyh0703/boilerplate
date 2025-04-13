@@ -7,6 +7,6 @@ var Module = fx.Module(
 	fx.Provide(
 		NewAuthRepository,
 		NewUserRepository,
-		NewProjectRepository,
+		NewPostRepository,
 	),
 )

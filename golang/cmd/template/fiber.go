@@ -14,8 +14,8 @@ import (
 
 func NewFiber(handlers ...handler.Handler) *fiber.App {
 	app := fiber.New(fiber.Config{
-		AppName:      "flow",
-		ServerHeader: "flow",
+		AppName:      "template",
+		ServerHeader: "template",
 		Prefork:      false,
 		UnescapePath: true,
 		ErrorHandler: exception.ErrorHandler,

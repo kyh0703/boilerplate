@@ -10,180 +10,33 @@ import (
 	"database/sql"
 )
 
-const createEdge = `-- name: CreateEdge :one
-INSERT INTO edges (
-  id,
-  flow_id,
-  source,
-  target,
-  type,
-  label,
-  hidden,
-  marker_end,
-  update_at,
-  create_at
-) VALUES (
-  ?, ?, ?, ?, ?, ?, ?, ?, now(), now()
-)
-RETURNING id, uuid, flow_id, source, target, type, label, hidden, marker_end, update_at, create_at
-`
-
-type CreateEdgeParams struct {
-	ID        int64  `json:"id"`
-	FlowID    int64  `json:"flowId"`
-	Source    string `json:"source"`
-	Target    string `json:"target"`
-	Type      string `json:"type"`
-	Label     string `json:"label"`
-	Hidden    int64  `json:"hidden"`
-	MarkerEnd string `json:"markerEnd"`
-}
-
-func (q *Queries) CreateEdge(ctx context.Context, arg CreateEdgeParams) (Edge, error) {
-	row := q.db.QueryRowContext(ctx, createEdge,
-		arg.ID,
-		arg.FlowID,
-		arg.Source,
-		arg.Target,
-		arg.Type,
-		arg.Label,
-		arg.Hidden,
-		arg.MarkerEnd,
-	)
-	var i Edge
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.FlowID,
-		&i.Source,
-		&i.Target,
-		&i.Type,
-		&i.Label,
-		&i.Hidden,
-		&i.MarkerEnd,
-		&i.UpdateAt,
-		&i.CreateAt,
-	)
-	return i, err
-}
-
-const createFlow = `-- name: CreateFlow :one
-INSERT INTO flows (
-  name,
-  description
-) VALUES (
-  ?, ?
-)
-RETURNING id, project_id, name, description, update_at, create_at
-`
-
-type CreateFlowParams struct {
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-}
-
-func (q *Queries) CreateFlow(ctx context.Context, arg CreateFlowParams) (Flow, error) {
-	row := q.db.QueryRowContext(ctx, createFlow, arg.Name, arg.Description)
-	var i Flow
-	err := row.Scan(
-		&i.ID,
-		&i.ProjectID,
-		&i.Name,
-		&i.Description,
-		&i.UpdateAt,
-		&i.CreateAt,
-	)
-	return i, err
-}
-
-const createNode = `-- name: CreateNode :one
-INSERT INTO nodes (
-  id,
-  flow_id,
-  type,
-  position,
-  styles,
-  width,
-  height,
-  hidden,
-  description,
-  update_at,
-  create_at
-) VALUES (
-  ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now()
-)
-RETURNING id, uuid, flow_id, type, position, styles, width, height, hidden, description, update_at, create_at
-`
-
-type CreateNodeParams struct {
-	ID          int64       `json:"id"`
-	FlowID      int64       `json:"flowId"`
-	Type        string      `json:"type"`
-	Position    interface{} `json:"position"`
-	Styles      interface{} `json:"styles"`
-	Width       int64       `json:"width"`
-	Height      int64       `json:"height"`
-	Hidden      int64       `json:"hidden"`
-	Description string      `json:"description"`
-}
-
-func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, error) {
-	row := q.db.QueryRowContext(ctx, createNode,
-		arg.ID,
-		arg.FlowID,
-		arg.Type,
-		arg.Position,
-		arg.Styles,
-		arg.Width,
-		arg.Height,
-		arg.Hidden,
-		arg.Description,
-	)
-	var i Node
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.FlowID,
-		&i.Type,
-		&i.Position,
-		&i.Styles,
-		&i.Width,
-		&i.Height,
-		&i.Hidden,
-		&i.Description,
-		&i.UpdateAt,
-		&i.CreateAt,
-	)
-	return i, err
-}
-
-const createProject = `-- name: CreateProject :one
-INSERT INTO projects (
+const createPost = `-- name: CreatePost :one
+INSERT INTO posts (
   user_id,
-  name,
-  description,
+  title,
+  content,
   update_at,
   create_at
 ) VALUES (
   ?, ?, ?, now(), now()
 )
-RETURNING id, user_id, name, description, update_at, create_at
+RETURNING id, user_id, title, content, update_at, create_at
 `
 
-type CreateProjectParams struct {
-	UserID      int64          `json:"userId"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
+type CreatePostParams struct {
+	UserID  int64          `json:"userId"`
+	Title   string         `json:"title"`
+	Content sql.NullString `json:"content"`
 }
 
-func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
-	row := q.db.QueryRowContext(ctx, createProject, arg.UserID, arg.Name, arg.Description)
-	var i Project
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
+	row := q.db.QueryRowContext(ctx, createPost, arg.UserID, arg.Title, arg.Content)
+	var i Post
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.Name,
-		&i.Description,
+		&i.Title,
+		&i.Content,
 		&i.UpdateAt,
 		&i.CreateAt,
 	)
@@ -262,43 +115,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const deleteEdge = `-- name: DeleteEdge :exec
-DELETE FROM edges
+const deletePost = `-- name: DeletePost :exec
+DELETE FROM posts
 WHERE id = ?
 `
 
-func (q *Queries) DeleteEdge(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteEdge, id)
-	return err
-}
-
-const deleteFlow = `-- name: DeleteFlow :exec
-DELETE FROM flows
-WHERE id = ?
-`
-
-func (q *Queries) DeleteFlow(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteFlow, id)
-	return err
-}
-
-const deleteNode = `-- name: DeleteNode :exec
-DELETE FROM nodes
-WHERE id = ?
-`
-
-func (q *Queries) DeleteNode(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteNode, id)
-	return err
-}
-
-const deleteProject = `-- name: DeleteProject :exec
-DELETE FROM projects
-WHERE id = ?
-`
-
-func (q *Queries) DeleteProject(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteProject, id)
+func (q *Queries) DeletePost(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deletePost, id)
 	return err
 }
 
@@ -322,87 +145,19 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 	return err
 }
 
-const getEdge = `-- name: GetEdge :one
-SELECT id, uuid, flow_id, source, target, type, label, hidden, marker_end, update_at, create_at FROM edges
+const getPost = `-- name: GetPost :one
+SELECT id, user_id, title, content, update_at, create_at FROM posts
 WHERE id = ? LIMIT 1
 `
 
-func (q *Queries) GetEdge(ctx context.Context, id int64) (Edge, error) {
-	row := q.db.QueryRowContext(ctx, getEdge, id)
-	var i Edge
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.FlowID,
-		&i.Source,
-		&i.Target,
-		&i.Type,
-		&i.Label,
-		&i.Hidden,
-		&i.MarkerEnd,
-		&i.UpdateAt,
-		&i.CreateAt,
-	)
-	return i, err
-}
-
-const getFlow = `-- name: GetFlow :one
-SELECT id, project_id, name, description, update_at, create_at FROM flows
-WHERE id = ? LIMIT 1
-`
-
-func (q *Queries) GetFlow(ctx context.Context, id int64) (Flow, error) {
-	row := q.db.QueryRowContext(ctx, getFlow, id)
-	var i Flow
-	err := row.Scan(
-		&i.ID,
-		&i.ProjectID,
-		&i.Name,
-		&i.Description,
-		&i.UpdateAt,
-		&i.CreateAt,
-	)
-	return i, err
-}
-
-const getNode = `-- name: GetNode :one
-SELECT id, uuid, flow_id, type, position, styles, width, height, hidden, description, update_at, create_at FROM nodes
-WHERE id = ? LIMIT 1
-`
-
-func (q *Queries) GetNode(ctx context.Context, id int64) (Node, error) {
-	row := q.db.QueryRowContext(ctx, getNode, id)
-	var i Node
-	err := row.Scan(
-		&i.ID,
-		&i.Uuid,
-		&i.FlowID,
-		&i.Type,
-		&i.Position,
-		&i.Styles,
-		&i.Width,
-		&i.Height,
-		&i.Hidden,
-		&i.Description,
-		&i.UpdateAt,
-		&i.CreateAt,
-	)
-	return i, err
-}
-
-const getProject = `-- name: GetProject :one
-SELECT id, user_id, name, description, update_at, create_at FROM projects
-WHERE id = ? LIMIT 1
-`
-
-func (q *Queries) GetProject(ctx context.Context, id int64) (Project, error) {
-	row := q.db.QueryRowContext(ctx, getProject, id)
-	var i Project
+func (q *Queries) GetPost(ctx context.Context, id int64) (Post, error) {
+	row := q.db.QueryRowContext(ctx, getPost, id)
+	var i Post
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.Name,
-		&i.Description,
+		&i.Title,
+		&i.Content,
 		&i.UpdateAt,
 		&i.CreateAt,
 	)
@@ -485,145 +240,26 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	return i, err
 }
 
-const listEdges = `-- name: ListEdges :many
-SELECT id, uuid, flow_id, source, target, type, label, hidden, marker_end, update_at, create_at FROM edges
-WHERE flow_id = ?
-ORDER BY create_at
-`
-
-func (q *Queries) ListEdges(ctx context.Context, flowID int64) ([]Edge, error) {
-	rows, err := q.db.QueryContext(ctx, listEdges, flowID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Edge
-	for rows.Next() {
-		var i Edge
-		if err := rows.Scan(
-			&i.ID,
-			&i.Uuid,
-			&i.FlowID,
-			&i.Source,
-			&i.Target,
-			&i.Type,
-			&i.Label,
-			&i.Hidden,
-			&i.MarkerEnd,
-			&i.UpdateAt,
-			&i.CreateAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listFlows = `-- name: ListFlows :many
-SELECT id, project_id, name, description, update_at, create_at FROM flows
-WHERE project_id = ?
-ORDER BY name
-`
-
-func (q *Queries) ListFlows(ctx context.Context, projectID int64) ([]Flow, error) {
-	rows, err := q.db.QueryContext(ctx, listFlows, projectID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Flow
-	for rows.Next() {
-		var i Flow
-		if err := rows.Scan(
-			&i.ID,
-			&i.ProjectID,
-			&i.Name,
-			&i.Description,
-			&i.UpdateAt,
-			&i.CreateAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listNodes = `-- name: ListNodes :many
-SELECT id, uuid, flow_id, type, position, styles, width, height, hidden, description, update_at, create_at FROM nodes
-WHERE flow_id = ?
-ORDER BY create_at
-`
-
-func (q *Queries) ListNodes(ctx context.Context, flowID int64) ([]Node, error) {
-	rows, err := q.db.QueryContext(ctx, listNodes, flowID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Node
-	for rows.Next() {
-		var i Node
-		if err := rows.Scan(
-			&i.ID,
-			&i.Uuid,
-			&i.FlowID,
-			&i.Type,
-			&i.Position,
-			&i.Styles,
-			&i.Width,
-			&i.Height,
-			&i.Hidden,
-			&i.Description,
-			&i.UpdateAt,
-			&i.CreateAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listProjects = `-- name: ListProjects :many
-SELECT id, user_id, name, description, update_at, create_at FROM projects
+const listPosts = `-- name: ListPosts :many
+SELECT id, user_id, title, content, update_at, create_at FROM posts
 WHERE user_id = ?
-ORDER BY name
+ORDER BY title
 `
 
-func (q *Queries) ListProjects(ctx context.Context, userID int64) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, listProjects, userID)
+func (q *Queries) ListPosts(ctx context.Context, userID int64) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, listPosts, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Project
+	var items []Post
 	for rows.Next() {
-		var i Project
+		var i Post
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.Name,
-			&i.Description,
+			&i.Title,
+			&i.Content,
 			&i.UpdateAt,
 			&i.CreateAt,
 		); err != nil {
@@ -710,118 +346,23 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const patchEdge = `-- name: PatchEdge :exec
-UPDATE edges SET
-source = COALESCE(?2, source),
-target = COALESCE(?3, target),
-type = COALESCE(?4, type),
-label = COALESCE(?5, label),
-hidden = COALESCE(?6, hidden),
-marker_end = COALESCE(?7, marker_end),
+const patchPost = `-- name: PatchPost :exec
+UPDATE posts SET
+title = COALESCE(?2, title),
+content = COALESCE(?3, content),
 update_at = now()
 WHERE id = ?
-RETURNING id, uuid, flow_id, source, target, type, label, hidden, marker_end, update_at, create_at
+RETURNING id, user_id, title, content, update_at, create_at
 `
 
-type PatchEdgeParams struct {
-	Source    sql.NullString `json:"source"`
-	Target    sql.NullString `json:"target"`
-	Type      sql.NullString `json:"type"`
-	Label     sql.NullString `json:"label"`
-	Hidden    sql.NullInt64  `json:"hidden"`
-	MarkerEnd sql.NullString `json:"markerEnd"`
-	ID        int64          `json:"id"`
+type PatchPostParams struct {
+	Title   sql.NullString `json:"title"`
+	Content sql.NullString `json:"content"`
+	ID      int64          `json:"id"`
 }
 
-func (q *Queries) PatchEdge(ctx context.Context, arg PatchEdgeParams) error {
-	_, err := q.db.ExecContext(ctx, patchEdge,
-		arg.Source,
-		arg.Target,
-		arg.Type,
-		arg.Label,
-		arg.Hidden,
-		arg.MarkerEnd,
-		arg.ID,
-	)
-	return err
-}
-
-const patchFlow = `-- name: PatchFlow :exec
-UPDATE flows SET
-name = COALESCE(?2, name),
-description = COALESCE(?3, description),
-update_at = now()
-WHERE id = ?
-RETURNING id, project_id, name, description, update_at, create_at
-`
-
-type PatchFlowParams struct {
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	ID          int64          `json:"id"`
-}
-
-func (q *Queries) PatchFlow(ctx context.Context, arg PatchFlowParams) error {
-	_, err := q.db.ExecContext(ctx, patchFlow, arg.Name, arg.Description, arg.ID)
-	return err
-}
-
-const patchNode = `-- name: PatchNode :exec
-UPDATE nodes SET
-type = COALESCE(?2, type),
-position = COALESCE(?3, position),
-styles = COALESCE(?4, styles),
-width = COALESCE(?5, width),
-height = COALESCE(?6, height),
-hidden = COALESCE(?7, hidden),
-description = COALESCE(?8, description),
-update_at = now()
-WHERE id = ?
-RETURNING id, uuid, flow_id, type, position, styles, width, height, hidden, description, update_at, create_at
-`
-
-type PatchNodeParams struct {
-	Type        sql.NullString `json:"type"`
-	Position    interface{}    `json:"position"`
-	Styles      interface{}    `json:"styles"`
-	Width       sql.NullInt64  `json:"width"`
-	Height      sql.NullInt64  `json:"height"`
-	Hidden      sql.NullInt64  `json:"hidden"`
-	Description sql.NullString `json:"description"`
-	ID          int64          `json:"id"`
-}
-
-func (q *Queries) PatchNode(ctx context.Context, arg PatchNodeParams) error {
-	_, err := q.db.ExecContext(ctx, patchNode,
-		arg.Type,
-		arg.Position,
-		arg.Styles,
-		arg.Width,
-		arg.Height,
-		arg.Hidden,
-		arg.Description,
-		arg.ID,
-	)
-	return err
-}
-
-const patchProject = `-- name: PatchProject :exec
-UPDATE projects SET
-name = COALESCE(?2, name),
-description = COALESCE(?3, description),
-update_at = now()
-WHERE id = ?
-RETURNING id, user_id, name, description, update_at, create_at
-`
-
-type PatchProjectParams struct {
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	ID          int64          `json:"id"`
-}
-
-func (q *Queries) PatchProject(ctx context.Context, arg PatchProjectParams) error {
-	_, err := q.db.ExecContext(ctx, patchProject, arg.Name, arg.Description, arg.ID)
+func (q *Queries) PatchPost(ctx context.Context, arg PatchPostParams) error {
+	_, err := q.db.ExecContext(ctx, patchPost, arg.Title, arg.Content, arg.ID)
 	return err
 }
 

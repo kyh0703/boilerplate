@@ -81,11 +81,11 @@ RETURNING *;
 DELETE FROM tokens
 WHERE id = ?;
 
--- name: CreateProject :one
-INSERT INTO projects (
+-- name: CreatePost :one
+INSERT INTO posts (
   user_id,
-  name,
-  description,
+  title,
+  content,
   update_at,
   create_at
 ) VALUES (
@@ -93,139 +93,23 @@ INSERT INTO projects (
 )
 RETURNING *;
 
--- name: GetProject :one
-SELECT * FROM projects
+-- name: GetPost :one
+SELECT * FROM posts
 WHERE id = ? LIMIT 1;
 
--- name: ListProjects :many
-SELECT * FROM projects
+-- name: ListPosts :many
+SELECT * FROM posts
 WHERE user_id = ?
-ORDER BY name;
+ORDER BY title;
 
--- name: PatchProject :exec
-UPDATE projects SET
-name = COALESCE(sqlc.narg(name), name),
-description = COALESCE(sqlc.narg(description), description),
+-- name: PatchPost :exec
+UPDATE posts SET
+title = COALESCE(sqlc.narg(title), title),
+content = COALESCE(sqlc.narg(content), content),
 update_at = now()
 WHERE id = ?
 RETURNING *;
 
--- name: DeleteProject :exec
-DELETE FROM projects
-WHERE id = ?;
-
--- name: CreateFlow :one
-INSERT INTO flows (
-  name,
-  description
-) VALUES (
-  ?, ?
-)
-RETURNING *;
-
--- name: GetFlow :one
-SELECT * FROM flows
-WHERE id = ? LIMIT 1;
-
--- name: ListFlows :many
-SELECT * FROM flows
-WHERE project_id = ?
-ORDER BY name;
-
--- name: PatchFlow :exec
-UPDATE flows SET
-name = COALESCE(sqlc.narg(name), name),
-description = COALESCE(sqlc.narg(description), description),
-update_at = now()
-WHERE id = ?
-RETURNING *;
-
--- name: DeleteFlow :exec
-DELETE FROM flows
-WHERE id = ?;
-
--- name: GetNode :one
-SELECT * FROM nodes
-WHERE id = ? LIMIT 1;
-
--- name: ListNodes :many
-SELECT * FROM nodes
-WHERE flow_id = ?
-ORDER BY create_at;
-
--- name: CreateNode :one
-INSERT INTO nodes (
-  id,
-  flow_id,
-  type,
-  position,
-  styles,
-  width,
-  height,
-  hidden,
-  description,
-  update_at,
-  create_at
-) VALUES (
-  ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now()
-)
-RETURNING *;
-
--- name: PatchNode :exec
-UPDATE nodes SET
-type = COALESCE(sqlc.narg(type), type),
-position = COALESCE(sqlc.narg(position), position),
-styles = COALESCE(sqlc.narg(styles), styles),
-width = COALESCE(sqlc.narg(width), width),
-height = COALESCE(sqlc.narg(height), height),
-hidden = COALESCE(sqlc.narg(hidden), hidden),
-description = COALESCE(sqlc.narg(description), description),
-update_at = now()
-WHERE id = ?
-RETURNING *;
-
--- name: DeleteNode :exec
-DELETE FROM nodes
-WHERE id = ?;
-
--- name: GetEdge :one
-SELECT * FROM edges
-WHERE id = ? LIMIT 1;
-
--- name: ListEdges :many
-SELECT * FROM edges
-WHERE flow_id = ?
-ORDER BY create_at;
-
--- name: CreateEdge :one
-INSERT INTO edges (
-  id,
-  flow_id,
-  source,
-  target,
-  type,
-  label,
-  hidden,
-  marker_end,
-  update_at,
-  create_at
-) VALUES (
-  ?, ?, ?, ?, ?, ?, ?, ?, now(), now()
-)
-RETURNING *;
-
--- name: PatchEdge :exec
-UPDATE edges SET
-source = COALESCE(sqlc.narg(source), source),
-target = COALESCE(sqlc.narg(target), target),
-type = COALESCE(sqlc.narg(type), type),
-label = COALESCE(sqlc.narg(label), label),
-hidden = COALESCE(sqlc.narg(hidden), hidden),
-marker_end = COALESCE(sqlc.narg(marker_end), marker_end),
-update_at = now()
-WHERE id = ?
-RETURNING *;
-
--- name: DeleteEdge :exec
-DELETE FROM edges
+-- name: DeletePost :exec
+DELETE FROM posts
 WHERE id = ?;

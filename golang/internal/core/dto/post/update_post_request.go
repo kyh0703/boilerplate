@@ -1,6 +1,6 @@
-package projects
+package post
 
-type UpdateProjectRequest struct {
+type UpdatePostRequest struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
 }

@@ -8,37 +8,37 @@ import (
 	"github.com/kyh0703/template/internal/core/domain/repository"
 )
 
-type projectRepository struct {
+type PostRepository struct {
 	db      *sql.DB
 	queries *model.Queries
 }
 
-func NewProjectRepository(
+func NewPostRepository(
 	db *sql.DB,
 	queries *model.Queries,
-) repository.ProjectRepository {
-	return &projectRepository{
+) repository.PostRepository {
+	return &PostRepository{
 		db:      db,
 		queries: queries,
 	}
 }
 
-func (p *projectRepository) CreateOne(ctx context.Context, arg model.CreateProjectParams) (model.Project, error) {
-	return p.queries.CreateProject(ctx, arg)
+func (p *PostRepository) CreateOne(ctx context.Context, arg model.CreatePostParams) (model.Post, error) {
+	return p.queries.CreatePost(ctx, arg)
 }
 
-func (p *projectRepository) FindOne(ctx context.Context, id int64) (model.Project, error) {
-	return p.queries.GetProject(ctx, id)
+func (p *PostRepository) FindOne(ctx context.Context, id int64) (model.Post, error) {
+	return p.queries.GetPost(ctx, id)
 }
 
-func (p *projectRepository) GetList(ctx context.Context, userID int64) ([]model.Project, error) {
-	return p.queries.ListProjects(ctx, userID)
+func (p *PostRepository) GetList(ctx context.Context, userID int64) ([]model.Post, error) {
+	return p.queries.ListPosts(ctx, userID)
 }
 
-func (p *projectRepository) UpdateOne(ctx context.Context, arg model.PatchProjectParams) error {
-	return p.queries.PatchProject(ctx, arg)
+func (p *PostRepository) UpdateOne(ctx context.Context, arg model.PatchPostParams) error {
+	return p.queries.PatchPost(ctx, arg)
 }
 
-func (p *projectRepository) DeleteOne(ctx context.Context, id int64) error {
-	return p.queries.DeleteProject(ctx, id)
+func (p *PostRepository) DeleteOne(ctx context.Context, id int64) error {
+	return p.queries.DeletePost(ctx, id)
 }

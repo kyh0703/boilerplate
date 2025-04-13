@@ -8,51 +8,13 @@ import (
 	"database/sql"
 )
 
-type Edge struct {
-	ID        int64          `json:"id"`
-	Uuid      string         `json:"uuid"`
-	FlowID    int64          `json:"flowId"`
-	Source    string         `json:"source"`
-	Target    string         `json:"target"`
-	Type      string         `json:"type"`
-	Label     string         `json:"label"`
-	Hidden    int64          `json:"hidden"`
-	MarkerEnd string         `json:"markerEnd"`
-	UpdateAt  sql.NullString `json:"updateAt"`
-	CreateAt  sql.NullString `json:"createAt"`
-}
-
-type Flow struct {
-	ID          int64          `json:"id"`
-	ProjectID   int64          `json:"projectId"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	UpdateAt    sql.NullString `json:"updateAt"`
-	CreateAt    sql.NullString `json:"createAt"`
-}
-
-type Node struct {
-	ID          int64          `json:"id"`
-	Uuid        string         `json:"uuid"`
-	FlowID      int64          `json:"flowId"`
-	Type        string         `json:"type"`
-	Position    interface{}    `json:"position"`
-	Styles      interface{}    `json:"styles"`
-	Width       int64          `json:"width"`
-	Height      int64          `json:"height"`
-	Hidden      int64          `json:"hidden"`
-	Description string         `json:"description"`
-	UpdateAt    sql.NullString `json:"updateAt"`
-	CreateAt    sql.NullString `json:"createAt"`
-}
-
-type Project struct {
-	ID          int64          `json:"id"`
-	UserID      int64          `json:"userId"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	UpdateAt    sql.NullString `json:"updateAt"`
-	CreateAt    sql.NullString `json:"createAt"`
+type Post struct {
+	ID       int64          `json:"id"`
+	UserID   int64          `json:"userId"`
+	Title    string         `json:"title"`
+	Content  sql.NullString `json:"content"`
+	UpdateAt sql.NullString `json:"updateAt"`
+	CreateAt sql.NullString `json:"createAt"`
 }
 
 type Token struct {
