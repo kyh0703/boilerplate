@@ -1,0 +1,24 @@
+server:
+  profile: dev
+  port: 8080
+app:
+  version: '1.0.0'
+  txTimeout: 180
+  log:
+    level: 'debug'
+    historyType: 'history'
+infra:
+  db:
+    user:
+    password: ''
+    sourceAddr:
+      - ''
+      - ''
+    dbName:
+  redis:
+    masterName: ''
+  kafka:
+    brokers:
+      - ''
+  sentry:
+    dsn: ''
