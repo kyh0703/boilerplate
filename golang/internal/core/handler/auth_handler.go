@@ -129,5 +129,13 @@ func (a *authHandler) Refresh(c *fiber.Ctx) error {
 		return err
 	}
 
-	return response.Success(c, fiber.StatusOK, token)
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    token.Refresh.RefreshToken,
+		Expires:  time.Unix(token.Refresh.RefreshExpiresIn, 0),
+		HTTPOnly: true,
+		Secure:   false,
+	})
+
+	return response.Success(c, fiber.StatusOK, token.Access)
 }
