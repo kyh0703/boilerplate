@@ -119,16 +119,12 @@ func (a *authHandler) Logout(c *fiber.Ctx) error {
 }
 
 func (a *authHandler) Refresh(c *fiber.Ctx) error {
-	var refresh dto.Refresh
-	if err := c.BodyParser(&refresh); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	refreshToken := c.Cookies("token")
+	if refreshToken == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "Refresh token not found")
 	}
 
-	if err := a.validate.Struct(refresh); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	token, err := a.authService.Refresh(c.Context(), &refresh)
+	token, err := a.authService.Refresh(c.Context(), refreshToken)
 	if err != nil {
 		return err
 	}

@@ -13,5 +13,5 @@ type Service interface {
 	Register(ctx context.Context, req *auth.Register) (*auth.Token, error)
 	Login(ctx context.Context, req *auth.Login) (*auth.Token, error)
 	Logout(ctx context.Context) error
-	Refresh(ctx context.Context, req *auth.Refresh) (*auth.Token, error)
+	Refresh(ctx context.Context, refreshToken string) (*auth.Token, error)
 }

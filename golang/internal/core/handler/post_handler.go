@@ -22,7 +22,7 @@ type PostHandler interface {
 	FindOne(c *fiber.Ctx) error
 	DeleteOne(c *fiber.Ctx) error
 	UpdateOne(c *fiber.Ctx) error
-	FindList(c *fiber.Ctx) error
+	FindAll(c *fiber.Ctx) error
 }
 
 type postHandler struct {
@@ -53,8 +53,8 @@ func (h *postHandler) Table() []Mapper {
 			h.authMiddleware.CurrentUser(), h.UpdateOne),
 		Mapping(fiber.MethodDelete, "/post/:id",
 			h.authMiddleware.CurrentUser(), h.DeleteOne),
-		Mapping(fiber.MethodPost, "/posts",
-			h.authMiddleware.CurrentUser(), h.FindList),
+		Mapping(fiber.MethodGet, "/posts",
+			h.authMiddleware.CurrentUser(), h.FindAll),
 	}
 }
 
@@ -148,7 +148,7 @@ func (h *postHandler) DeleteOne(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (h *postHandler) FindList(c *fiber.Ctx) error {
+func (h *postHandler) FindAll(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
 
 	postList, err := h.postRepository.GetList(c.Context(), user.ID)

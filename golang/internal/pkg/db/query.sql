@@ -19,7 +19,7 @@ INSERT INTO users (
   update_at,
   create_at
 ) VALUES (
-  ?, ?, ?, ?, now(), now()
+  ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 RETURNING *;
 
@@ -29,7 +29,7 @@ email = ?,
 name = ?,
 password = ?,
 bio = ?,
-update_at = now()
+update_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
 
@@ -38,7 +38,7 @@ UPDATE users SET
 name = COALESCE(sqlc.narg(name), name),
 password = COALESCE(sqlc.narg(password), password),
 bio = COALESCE(sqlc.narg(bio), bio),
-update_at = now()
+update_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
 
@@ -65,7 +65,7 @@ INSERT INTO tokens (
   expires_in,
   create_at
 ) VALUES (
-  ?, ?, ?, now()
+  ?, ?, ?, CURRENT_TIMESTAMP
 )
 RETURNING *;
 
@@ -89,7 +89,7 @@ INSERT INTO posts (
   update_at,
   create_at
 ) VALUES (
-  ?, ?, ?, now(), now()
+  ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 RETURNING *;
 
@@ -106,7 +106,7 @@ ORDER BY title;
 UPDATE posts SET
 title = COALESCE(sqlc.narg(title), title),
 content = COALESCE(sqlc.narg(content), content),
-update_at = now()
+update_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
 

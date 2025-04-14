@@ -141,8 +141,8 @@ func (a *authService) Logout(ctx context.Context) error {
 	return nil
 }
 
-func (a *authService) Refresh(ctx context.Context, req *auth.Refresh) (*auth.Token, error) {
-	mapClaims, err := jwt.ParseToken(req.RefreshToken)
+func (a *authService) Refresh(ctx context.Context, refreshToken string) (*auth.Token, error) {
+	mapClaims, err := jwt.ParseToken(refreshToken)
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
@@ -163,7 +163,7 @@ func (a *authService) Refresh(ctx context.Context, req *auth.Refresh) (*auth.Tok
 	}
 
 	expire := time.Unix(token.ExpiresIn, 0)
-	if expire.After(time.Now()) {
+	if expire.Before(time.Now()) {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "unauthorized")
 	}
 
