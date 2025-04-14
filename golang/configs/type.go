@@ -11,6 +11,7 @@ type DB struct {
 	SourceAddrs  []string `mapstructure:"sourceAddrs"`
 	ReplicaAddrs []string `mapstructure:"replicaAddrs"`
 	DBName       string   `mapstructure:"dbName"`
+	FilePath     string   `mapstructure:"filePath"`
 }
 
 type Redis struct {

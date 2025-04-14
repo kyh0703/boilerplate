@@ -16,7 +16,13 @@ import (
 var ddl string
 
 func NewDB(config *configs.Config) (*sql.DB, error) {
-	db, err := sql.Open("sqlite", ":memory:")
+	// 설정 파일에서 DB 파일 경로를 가져옴
+	dbPath := config.Infra.DB.FilePath
+	if dbPath == "" {
+		dbPath = ":memory:" // 기본값으로 메모리 DB 사용
+	}
+
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, err
 	}
