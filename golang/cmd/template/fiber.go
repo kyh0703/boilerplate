@@ -20,10 +20,9 @@ func NewFiber(handlers ...handler.Handler) *fiber.App {
 		UnescapePath: true,
 		ErrorHandler: exception.ErrorHandler,
 	})
-
 	app.Get("/swagger/*", swagger.HandlerDefault)
-	app = setupHandlers(app, handlers...)
 	app = setupMiddleware(app)
+	app = setupHandlers(app, handlers...)
 	return app
 }
 
