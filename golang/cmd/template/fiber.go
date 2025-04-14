@@ -30,7 +30,7 @@ func setupMiddleware(app *fiber.App) *fiber.App {
 	app.Use(cors.New())
 	app.Use(exception.Recover())
 	app.Use(fiberzap.New(fiberzap.Config{
-		Logger: logger.Logger.Desugar(),
+		Logger: logger.Zap,
 	}))
 	app.Use(pprof.New())
 	app.Use(recover.New(recover.Config{
