@@ -96,7 +96,7 @@ func (a *authService) Login(ctx context.Context, req *auth.Login) (*auth.Token, 
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	ok, err := password.Compare(req.Password, user.Password)
+	ok, err := password.Compare(user.Password, req.Password)
 	if err != nil || !ok {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "invalid email or password")
 	}
