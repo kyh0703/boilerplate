@@ -7,11 +7,8 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { Response } from 'express'
-import type { OAuthFactory } from '../oauth/oauth.module'
 import type { CreateUserDto } from '../users/dto'
-import { Provider } from '../users/entities/user.entity'
 import type { UsersService } from '../users/users.service'
-import { SigninDto, SignupDto } from './dto'
 import { Payload, Token, UserRO } from './interfaces'
 
 @Injectable()

@@ -1,25 +1,35 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { AuthController } from './auth/auth.controller'
-import { AuthService } from './auth/auth.service'
+import { ConfigModule, type ConfigService } from '@nestjs/config'
 import { validate } from './config/env.validation'
-import { OauthModule } from './oauth/oauth.module'
-import { UsersController } from './users/users.controller'
 import { UsersModule } from './users/users.module'
+import appConfig from './config/app.config'
+import databaseConfig from './config/database.config'
+import { AuthModule } from './auth/auth.module'
+import authConfig from './config/auth.config'
+import { PrismaModule } from './prisma/prisma.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [appConfig, databaseConfig, authConfig],
       ignoreEnvFile: process.env.NODE_ENV === 'production',
       validate,
+      validationOptions: {
+        abortEarly: true,
+      },
     }),
-    OauthModule,
+    PrismaModule,
     UsersModule,
+    AuthModule,
   ],
-  controllers: [AppController, AuthController, UsersController],
-  providers: [AppService, AuthService],
+  controllers: [],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  static port: string
+
+  constructor(private configService: ConfigService) {
+    AppModule.port = this.configService.get<string>('app.port')
+  }
+}
