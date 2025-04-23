@@ -17,7 +17,7 @@ type Tx struct {
 }
 
 func NewTx(inner interface{}, cfg *configs.Config) *Tx {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.App.TxTimeout))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(30))
 	id := uuid.NewString()
 	return &Tx{
 		id:     id,

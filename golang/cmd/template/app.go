@@ -20,7 +20,7 @@ func NewApp(config *configs.Config, fiber *fiber.App) *app {
 }
 
 func (a *app) Run(ctx context.Context) error {
-	a.fiber.Listen(":" + a.config.Server.Port)
+	a.fiber.Listen(":" + a.config.App.Server.Port)
 	return nil
 }
 

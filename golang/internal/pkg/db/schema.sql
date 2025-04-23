@@ -1,9 +1,12 @@
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY,
   email TEXT NOT NULL,
-  password TEXT NOT NULL,
+  password TEXT,
   name TEXT NOT NULL,
   bio TEXT,
+  provider TEXT,
+  provider_id TEXT,
+  is_admin INTEGER NOT NULL DEFAULT 0,
   update_at TEXT DEFAULT CURRENT_TIMESTAMP,
   create_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -25,4 +28,13 @@ CREATE TABLE IF NOT EXISTS posts (
   update_at TEXT DEFAULT CURRENT_TIMESTAMP,
   create_at TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS oauth_states (
+  id INTEGER PRIMARY KEY,
+  state TEXT NOT NULL,
+  redirect_url TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  create_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(state)
 );

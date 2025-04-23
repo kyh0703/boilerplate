@@ -16,10 +16,13 @@ INSERT INTO users (
   password,
   name,
   bio,
+  provider,
+  provider_id,
+  is_admin,
   update_at,
   create_at
 ) VALUES (
-  ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+  ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 RETURNING *;
 
@@ -29,6 +32,9 @@ email = ?,
 name = ?,
 password = ?,
 bio = ?,
+provider = ?,
+provider_id = ?,
+is_admin = ?,
 update_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
@@ -38,6 +44,9 @@ UPDATE users SET
 name = COALESCE(sqlc.narg(name), name),
 password = COALESCE(sqlc.narg(password), password),
 bio = COALESCE(sqlc.narg(bio), bio),
+provider = COALESCE(sqlc.narg(provider), provider),
+provider_id = COALESCE(sqlc.narg(provider_id), provider_id),
+is_admin = COALESCE(sqlc.narg(is_admin), is_admin),
 update_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;
@@ -102,6 +111,12 @@ SELECT * FROM posts
 WHERE user_id = ?
 ORDER BY title;
 
+-- name: ListPostsWithPaging :many
+SELECT * FROM posts
+WHERE user_id = ?
+ORDER BY title
+LIMIT ? OFFSET ?;
+
 -- name: PatchPost :exec
 UPDATE posts SET
 title = COALESCE(sqlc.narg(title), title),
@@ -113,3 +128,22 @@ RETURNING *;
 -- name: DeletePost :exec
 DELETE FROM posts
 WHERE id = ?;
+
+-- name: CreateOAuthState :one
+INSERT INTO oauth_states (
+  state,
+  redirect_url,
+  expires_at,
+  create_at
+) VALUES (
+  ?, ?, ?, CURRENT_TIMESTAMP
+)
+RETURNING *;
+
+-- name: GetOAuthState :one
+SELECT * FROM oauth_states
+WHERE state = ? LIMIT 1;
+
+-- name: DeleteOAuthState :exec
+DELETE FROM oauth_states
+WHERE state = ?;

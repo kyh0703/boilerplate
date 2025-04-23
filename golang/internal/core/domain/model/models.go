@@ -8,6 +8,14 @@ import (
 	"database/sql"
 )
 
+type OauthState struct {
+	ID          int64          `json:"id"`
+	State       string         `json:"state"`
+	RedirectUrl string         `json:"redirectUrl"`
+	ExpiresAt   string         `json:"expiresAt"`
+	CreateAt    sql.NullString `json:"createAt"`
+}
+
 type Post struct {
 	ID       int64          `json:"id"`
 	UserID   int64          `json:"userId"`
@@ -26,11 +34,14 @@ type Token struct {
 }
 
 type User struct {
-	ID       int64          `json:"id"`
-	Email    string         `json:"email" validate:"required,email"`
-	Password string         `json:"password" validate:"required,min=8,max=32"`
-	Name     string         `json:"name"`
-	Bio      sql.NullString `json:"bio"`
-	UpdateAt sql.NullString `json:"updateAt"`
-	CreateAt sql.NullString `json:"createAt"`
+	ID         int64          `json:"id"`
+	Email      string         `json:"email" validate:"required,email"`
+	Password   sql.NullString `json:"password" validate:"required,min=8,max=32"`
+	Name       string         `json:"name"`
+	Bio        sql.NullString `json:"bio"`
+	Provider   sql.NullString `json:"provider"`
+	ProviderID sql.NullString `json:"providerId"`
+	IsAdmin    int64          `json:"isAdmin"`
+	UpdateAt   sql.NullString `json:"updateAt"`
+	CreateAt   sql.NullString `json:"createAt"`
 }

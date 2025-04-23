@@ -1,0 +1,40 @@
+app:
+  version: "1.0.0"
+  log:
+    level: "debug"
+    historyType: "file"
+  server:
+    profile: "dev"
+    port: "8080"
+
+infra:
+  db:
+    user: "root"
+    password: "password"
+    sourceAddrs: ["localhost:3306"]
+    replicaAddrs: ["localhost:3307"]
+    dbName: "flow"
+    filePath: "./data/flow.db"
+  redis:
+    masterName: "mymaster"
+    sentinelAddrs: ["localhost:26379"]
+  kafka:
+    brokers: ["localhost:9092"]
+  sentry:
+    dsn: "your-sentry-dsn"
+
+auth:
+  google:
+    client_id: "your-client-id"
+    client_secret: "your-client-secret"
+    redirect_url: "http://localhost:8080/api/v1/auth/google/callback"
+    scopes:
+      - "https://www.googleapis.com/auth/userinfo.email"
+      - "https://www.googleapis.com/auth/userinfo.profile"
+  kakao:
+    client_id: "your-kakao-client-id"
+    client_secret: "your-kakao-client-secret"
+    redirect_url: "http://localhost:8080/api/v1/auth/kakao/callback"
+    scopes:
+      - "account_email"
+      - "profile_nickname"

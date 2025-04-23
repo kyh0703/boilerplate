@@ -88,6 +88,13 @@ tag:
 	@docker image tag $(TARGET):$(GIT_COMMIT) real-image-registry.ncr.gov-ntruss.com/ipron/$(TARGET):$(GIT_COMMIT)
 	@echo ""
 
+.PHONY: sqlc
+sqlc:
+	@echo "sqlc:"
+	@echo "sqlc generate"
+	@sqlc generate
+	@echo ""
+
 .PHONY: vendor
 vendor:
 	@echo "vendor:"

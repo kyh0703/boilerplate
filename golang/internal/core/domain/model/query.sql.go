@@ -10,6 +10,37 @@ import (
 	"database/sql"
 )
 
+const createOAuthState = `-- name: CreateOAuthState :one
+INSERT INTO oauth_states (
+  state,
+  redirect_url,
+  expires_at,
+  create_at
+) VALUES (
+  ?, ?, ?, CURRENT_TIMESTAMP
+)
+RETURNING id, state, redirect_url, expires_at, create_at
+`
+
+type CreateOAuthStateParams struct {
+	State       string `json:"state"`
+	RedirectUrl string `json:"redirectUrl"`
+	ExpiresAt   string `json:"expiresAt"`
+}
+
+func (q *Queries) CreateOAuthState(ctx context.Context, arg CreateOAuthStateParams) (OauthState, error) {
+	row := q.db.QueryRowContext(ctx, createOAuthState, arg.State, arg.RedirectUrl, arg.ExpiresAt)
+	var i OauthState
+	err := row.Scan(
+		&i.ID,
+		&i.State,
+		&i.RedirectUrl,
+		&i.ExpiresAt,
+		&i.CreateAt,
+	)
+	return i, err
+}
+
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
   user_id,
@@ -18,7 +49,7 @@ INSERT INTO posts (
   update_at,
   create_at
 ) VALUES (
-  ?, ?, ?, now(), now()
+  ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 RETURNING id, user_id, title, content, update_at, create_at
 `
@@ -50,7 +81,7 @@ INSERT INTO tokens (
   expires_in,
   create_at
 ) VALUES (
-  ?, ?, ?, now()
+  ?, ?, ?, CURRENT_TIMESTAMP
 )
 RETURNING id, user_id, refresh_token, expires_in, create_at
 `
@@ -80,19 +111,25 @@ INSERT INTO users (
   password,
   name,
   bio,
+  provider,
+  provider_id,
+  is_admin,
   update_at,
   create_at
 ) VALUES (
-  ?, ?, ?, ?, now(), now()
+  ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
-RETURNING id, email, password, name, bio, update_at, create_at
+RETURNING id, email, password, name, bio, provider, provider_id, is_admin, update_at, create_at
 `
 
 type CreateUserParams struct {
-	Email    string         `json:"email" validate:"required,email"`
-	Password string         `json:"password" validate:"required,min=8,max=32"`
-	Name     string         `json:"name"`
-	Bio      sql.NullString `json:"bio"`
+	Email      string         `json:"email" validate:"required,email"`
+	Password   sql.NullString `json:"password" validate:"required,min=8,max=32"`
+	Name       string         `json:"name"`
+	Bio        sql.NullString `json:"bio"`
+	Provider   sql.NullString `json:"provider"`
+	ProviderID sql.NullString `json:"providerId"`
+	IsAdmin    int64          `json:"isAdmin"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -101,6 +138,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Password,
 		arg.Name,
 		arg.Bio,
+		arg.Provider,
+		arg.ProviderID,
+		arg.IsAdmin,
 	)
 	var i User
 	err := row.Scan(
@@ -109,10 +149,23 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Password,
 		&i.Name,
 		&i.Bio,
+		&i.Provider,
+		&i.ProviderID,
+		&i.IsAdmin,
 		&i.UpdateAt,
 		&i.CreateAt,
 	)
 	return i, err
+}
+
+const deleteOAuthState = `-- name: DeleteOAuthState :exec
+DELETE FROM oauth_states
+WHERE state = ?
+`
+
+func (q *Queries) DeleteOAuthState(ctx context.Context, state string) error {
+	_, err := q.db.ExecContext(ctx, deleteOAuthState, state)
+	return err
 }
 
 const deletePost = `-- name: DeletePost :exec
@@ -143,6 +196,24 @@ WHERE id = ?
 func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
+}
+
+const getOAuthState = `-- name: GetOAuthState :one
+SELECT id, state, redirect_url, expires_at, create_at FROM oauth_states
+WHERE state = ? LIMIT 1
+`
+
+func (q *Queries) GetOAuthState(ctx context.Context, state string) (OauthState, error) {
+	row := q.db.QueryRowContext(ctx, getOAuthState, state)
+	var i OauthState
+	err := row.Scan(
+		&i.ID,
+		&i.State,
+		&i.RedirectUrl,
+		&i.ExpiresAt,
+		&i.CreateAt,
+	)
+	return i, err
 }
 
 const getPost = `-- name: GetPost :one
@@ -201,7 +272,7 @@ func (q *Queries) GetTokenByUserID(ctx context.Context, userID int64) (Token, er
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, password, name, bio, update_at, create_at FROM users
+SELECT id, email, password, name, bio, provider, provider_id, is_admin, update_at, create_at FROM users
 WHERE id = ? LIMIT 1
 `
 
@@ -214,6 +285,9 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 		&i.Password,
 		&i.Name,
 		&i.Bio,
+		&i.Provider,
+		&i.ProviderID,
+		&i.IsAdmin,
 		&i.UpdateAt,
 		&i.CreateAt,
 	)
@@ -221,7 +295,7 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password, name, bio, update_at, create_at FROM users
+SELECT id, email, password, name, bio, provider, provider_id, is_admin, update_at, create_at FROM users
 WHERE email = ? LIMIT 1
 `
 
@@ -234,6 +308,9 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Password,
 		&i.Name,
 		&i.Bio,
+		&i.Provider,
+		&i.ProviderID,
+		&i.IsAdmin,
 		&i.UpdateAt,
 		&i.CreateAt,
 	)
@@ -248,6 +325,49 @@ ORDER BY title
 
 func (q *Queries) ListPosts(ctx context.Context, userID int64) ([]Post, error) {
 	rows, err := q.db.QueryContext(ctx, listPosts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Content,
+			&i.UpdateAt,
+			&i.CreateAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPostsWithPaging = `-- name: ListPostsWithPaging :many
+SELECT id, user_id, title, content, update_at, create_at FROM posts
+WHERE user_id = ?
+ORDER BY title
+LIMIT ? OFFSET ?
+`
+
+type ListPostsWithPagingParams struct {
+	UserID int64 `json:"userId"`
+	Limit  int64 `json:"limit"`
+	Offset int64 `json:"offset"`
+}
+
+func (q *Queries) ListPostsWithPaging(ctx context.Context, arg ListPostsWithPagingParams) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, listPostsWithPaging, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +431,7 @@ func (q *Queries) ListTokens(ctx context.Context) ([]Token, error) {
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, password, name, bio, update_at, create_at FROM users
+SELECT id, email, password, name, bio, provider, provider_id, is_admin, update_at, create_at FROM users
 ORDER BY name
 `
 
@@ -330,6 +450,9 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Password,
 			&i.Name,
 			&i.Bio,
+			&i.Provider,
+			&i.ProviderID,
+			&i.IsAdmin,
 			&i.UpdateAt,
 			&i.CreateAt,
 		); err != nil {
@@ -350,7 +473,7 @@ const patchPost = `-- name: PatchPost :exec
 UPDATE posts SET
 title = COALESCE(?2, title),
 content = COALESCE(?3, content),
-update_at = now()
+update_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING id, user_id, title, content, update_at, create_at
 `
@@ -371,16 +494,22 @@ UPDATE users SET
 name = COALESCE(?2, name),
 password = COALESCE(?3, password),
 bio = COALESCE(?4, bio),
-update_at = now()
+provider = COALESCE(?5, provider),
+provider_id = COALESCE(?6, provider_id),
+is_admin = COALESCE(?7, is_admin),
+update_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, email, password, name, bio, update_at, create_at
+RETURNING id, email, password, name, bio, provider, provider_id, is_admin, update_at, create_at
 `
 
 type PatchUserParams struct {
-	Name     sql.NullString `json:"name"`
-	Password sql.NullString `json:"password" validate:"required,min=8,max=32"`
-	Bio      sql.NullString `json:"bio"`
-	ID       int64          `json:"id"`
+	Name       sql.NullString `json:"name"`
+	Password   sql.NullString `json:"password" validate:"required,min=8,max=32"`
+	Bio        sql.NullString `json:"bio"`
+	Provider   sql.NullString `json:"provider"`
+	ProviderID sql.NullString `json:"providerId"`
+	IsAdmin    sql.NullInt64  `json:"isAdmin"`
+	ID         int64          `json:"id"`
 }
 
 func (q *Queries) PatchUser(ctx context.Context, arg PatchUserParams) error {
@@ -388,6 +517,9 @@ func (q *Queries) PatchUser(ctx context.Context, arg PatchUserParams) error {
 		arg.Name,
 		arg.Password,
 		arg.Bio,
+		arg.Provider,
+		arg.ProviderID,
+		arg.IsAdmin,
 		arg.ID,
 	)
 	return err
@@ -425,17 +557,23 @@ email = ?,
 name = ?,
 password = ?,
 bio = ?,
-update_at = now()
+provider = ?,
+provider_id = ?,
+is_admin = ?,
+update_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, email, password, name, bio, update_at, create_at
+RETURNING id, email, password, name, bio, provider, provider_id, is_admin, update_at, create_at
 `
 
 type UpdateUserParams struct {
-	Email    string         `json:"email" validate:"required,email"`
-	Name     string         `json:"name"`
-	Password string         `json:"password" validate:"required,min=8,max=32"`
-	Bio      sql.NullString `json:"bio"`
-	ID       int64          `json:"id"`
+	Email      string         `json:"email" validate:"required,email"`
+	Name       string         `json:"name"`
+	Password   sql.NullString `json:"password" validate:"required,min=8,max=32"`
+	Bio        sql.NullString `json:"bio"`
+	Provider   sql.NullString `json:"provider"`
+	ProviderID sql.NullString `json:"providerId"`
+	IsAdmin    int64          `json:"isAdmin"`
+	ID         int64          `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -444,6 +582,9 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.Name,
 		arg.Password,
 		arg.Bio,
+		arg.Provider,
+		arg.ProviderID,
+		arg.IsAdmin,
 		arg.ID,
 	)
 	return err

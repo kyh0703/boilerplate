@@ -64,7 +64,7 @@ func (a *authService) generateNewTokens(ctx context.Context, user model.User) (*
 }
 
 func (a *authService) Register(ctx context.Context, req *auth.Register) (*auth.Token, error) {
-	_, err := a.userRepository.FindOneByEmail(ctx, req.Email)
+	_, err := a.userRepository.FindByEmail(ctx, req.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -91,12 +91,12 @@ func (a *authService) Register(ctx context.Context, req *auth.Register) (*auth.T
 }
 
 func (a *authService) Login(ctx context.Context, req *auth.Login) (*auth.Token, error) {
-	user, err := a.userRepository.FindOneByEmail(ctx, req.Email)
+	user, err := a.userRepository.FindByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	ok, err := password.Compare(user.Password, req.Password)
+	ok, err := password.Compare(user.Password.String, req.Password)
 	if err != nil || !ok {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "invalid email or password")
 	}
@@ -152,7 +152,7 @@ func (a *authService) Refresh(ctx context.Context, refreshToken string) (*auth.T
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "unauthorized")
 	}
 
-	user, err := a.userRepository.FindOneByEmail(ctx, email)
+	user, err := a.userRepository.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}

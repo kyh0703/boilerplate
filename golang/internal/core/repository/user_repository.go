@@ -23,11 +23,11 @@ func (u *userRepository) CreateOne(ctx context.Context, arg model.CreateUserPara
 	return u.queries.CreateUser(ctx, arg)
 }
 
-func (u *userRepository) FindOne(ctx context.Context, id int64) (model.User, error) {
+func (u *userRepository) FindByID(ctx context.Context, id int64) (model.User, error) {
 	return u.queries.GetUser(ctx, id)
 }
 
-func (u *userRepository) FindOneByEmail(ctx context.Context, email string) (model.User, error) {
+func (u *userRepository) FindByEmail(ctx context.Context, email string) (model.User, error) {
 	return u.queries.GetUserByEmail(ctx, email)
 }
 

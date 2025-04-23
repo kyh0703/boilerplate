@@ -19,6 +19,16 @@ type FakeAuthMiddleware struct {
 	currentUserReturnsOnCall map[int]struct {
 		result1 fiber.Handler
 	}
+	RequireAdminStub        func() fiber.Handler
+	requireAdminMutex       sync.RWMutex
+	requireAdminArgsForCall []struct {
+	}
+	requireAdminReturns struct {
+		result1 fiber.Handler
+	}
+	requireAdminReturnsOnCall map[int]struct {
+		result1 fiber.Handler
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -76,11 +86,66 @@ func (fake *FakeAuthMiddleware) CurrentUserReturnsOnCall(i int, result1 fiber.Ha
 	}{result1}
 }
 
+func (fake *FakeAuthMiddleware) RequireAdmin() fiber.Handler {
+	fake.requireAdminMutex.Lock()
+	ret, specificReturn := fake.requireAdminReturnsOnCall[len(fake.requireAdminArgsForCall)]
+	fake.requireAdminArgsForCall = append(fake.requireAdminArgsForCall, struct {
+	}{})
+	stub := fake.RequireAdminStub
+	fakeReturns := fake.requireAdminReturns
+	fake.recordInvocation("RequireAdmin", []interface{}{})
+	fake.requireAdminMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeAuthMiddleware) RequireAdminCallCount() int {
+	fake.requireAdminMutex.RLock()
+	defer fake.requireAdminMutex.RUnlock()
+	return len(fake.requireAdminArgsForCall)
+}
+
+func (fake *FakeAuthMiddleware) RequireAdminCalls(stub func() fiber.Handler) {
+	fake.requireAdminMutex.Lock()
+	defer fake.requireAdminMutex.Unlock()
+	fake.RequireAdminStub = stub
+}
+
+func (fake *FakeAuthMiddleware) RequireAdminReturns(result1 fiber.Handler) {
+	fake.requireAdminMutex.Lock()
+	defer fake.requireAdminMutex.Unlock()
+	fake.RequireAdminStub = nil
+	fake.requireAdminReturns = struct {
+		result1 fiber.Handler
+	}{result1}
+}
+
+func (fake *FakeAuthMiddleware) RequireAdminReturnsOnCall(i int, result1 fiber.Handler) {
+	fake.requireAdminMutex.Lock()
+	defer fake.requireAdminMutex.Unlock()
+	fake.RequireAdminStub = nil
+	if fake.requireAdminReturnsOnCall == nil {
+		fake.requireAdminReturnsOnCall = make(map[int]struct {
+			result1 fiber.Handler
+		})
+	}
+	fake.requireAdminReturnsOnCall[i] = struct {
+		result1 fiber.Handler
+	}{result1}
+}
+
 func (fake *FakeAuthMiddleware) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.currentUserMutex.RLock()
 	defer fake.currentUserMutex.RUnlock()
+	fake.requireAdminMutex.RLock()
+	defer fake.requireAdminMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
