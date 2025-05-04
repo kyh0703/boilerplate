@@ -16,11 +16,12 @@ type Infra struct {
 type Auth struct {
 	Google Google `mapstructure:"google"`
 	Kakao  Kakao  `mapstructure:"kakao"`
-	Naver  Naver  `mapstructure:"naver"`
+	Github Github `mapstructure:"github"`
 }
 
 type Config struct {
-	App   App   `mapstructure:"app"`
-	Infra Infra `mapstructure:"infra"`
-	Auth  Auth  `mapstructure:"auth"`
+	App    App    `mapstructure:"app"`
+	Infra  Infra  `mapstructure:"infra"`
+	Auth   Auth   `mapstructure:"auth"`
+	Server Server `mapstructure:"server"`
 }

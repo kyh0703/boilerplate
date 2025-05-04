@@ -18,14 +18,14 @@ type AuthMiddleware interface {
 }
 
 type authMiddleware struct {
-	userRepository repository.UserRepository
+	usersRepository repository.UsersRepository
 }
 
 func NewAuthMiddleware(
-	userRepository repository.UserRepository,
+	usersRepository repository.UsersRepository,
 ) AuthMiddleware {
 	return &authMiddleware{
-		userRepository: userRepository,
+		usersRepository: usersRepository,
 	}
 }
 
@@ -56,7 +56,7 @@ func (a *authMiddleware) CurrentUser() fiber.Handler {
 			return fiber.NewError(fiber.StatusUnauthorized, "unauthorized")
 		}
 
-		user, err := a.userRepository.FindByEmail(c.Context(), email)
+		user, err := a.usersRepository.FindByEmail(c.Context(), email)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 		}

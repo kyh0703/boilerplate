@@ -14,7 +14,7 @@ type Kakao struct {
 	Scopes       []string `mapstructure:"scopes"`
 }
 
-type Naver struct {
+type Github struct {
 	ClientID     string   `mapstructure:"client_id"`
 	ClientSecret string   `mapstructure:"client_secret"`
 	RedirectURL  string   `mapstructure:"redirect_url"`

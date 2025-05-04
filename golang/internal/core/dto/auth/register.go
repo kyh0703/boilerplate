@@ -1,6 +1,6 @@
 package auth
 
-type Register struct {
+type RegisterDto struct {
 	Email           string `json:"email" validate:"required,email"`
 	Password        string `json:"password" validate:"required,min=8,max=20"`
 	ConfirmPassword string `json:"confirmPassword" validate:"required,min=8,max=20"`

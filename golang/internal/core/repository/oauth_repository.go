@@ -8,29 +8,29 @@ import (
 	"github.com/kyh0703/template/internal/core/domain/repository"
 )
 
-type oauthStateRepository struct {
+type oauthRepository struct {
 	db      *sql.DB
 	queries *model.Queries
 }
 
-func NewOAuthStateRepository(
+func NewOAuthRepository(
 	db *sql.DB,
 	queries *model.Queries,
 ) repository.OAuthRepository {
-	return &oauthStateRepository{
+	return &oauthRepository{
 		db:      db,
 		queries: queries,
 	}
 }
 
-func (r *oauthStateRepository) CreateState(ctx context.Context, arg model.CreateOAuthStateParams) (model.OauthState, error) {
+func (r *oauthRepository) CreateState(ctx context.Context, arg model.CreateOAuthStateParams) (model.OauthState, error) {
 	return r.queries.CreateOAuthState(ctx, arg)
 }
 
-func (r *oauthStateRepository) FindByState(ctx context.Context, state string) (model.OauthState, error) {
+func (r *oauthRepository) FindByState(ctx context.Context, state string) (model.OauthState, error) {
 	return r.queries.GetOAuthState(ctx, state)
 }
 
-func (r *oauthStateRepository) DeleteState(ctx context.Context, state string) error {
+func (r *oauthRepository) DeleteState(ctx context.Context, state string) error {
 	return r.queries.DeleteOAuthState(ctx, state)
 }

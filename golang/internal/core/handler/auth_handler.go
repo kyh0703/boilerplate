@@ -63,7 +63,7 @@ func (a *authHandler) Whoami(c *fiber.Ctx) error {
 }
 
 func (a *authHandler) Register(c *fiber.Ctx) error {
-	var register dto.Register
+	var register dto.RegisterDto
 	if err := c.BodyParser(&register); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -89,7 +89,7 @@ func (a *authHandler) Register(c *fiber.Ctx) error {
 }
 
 func (a *authHandler) Login(c *fiber.Ctx) error {
-	var login dto.Login
+	var login dto.LoginDto
 	if err := c.BodyParser(&login); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}

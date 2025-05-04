@@ -8,7 +8,7 @@ var Module = fx.Module(
 	"handler",
 	fx.Provide(
 		AsHandler(NewAuthHandler),
-		AsHandler(NewPostHandler),
-		AsHandler(NewUserHandler),
+		AsHandler(NewPostsHandler),
+		AsHandler(NewUsersHandler),
 	),
 )

@@ -1,5 +1,5 @@
 package auth
 
-type Refresh struct {
+type RefreshDto struct {
 	RefreshToken string `json:"refreshToken" validate:"required"`
 }

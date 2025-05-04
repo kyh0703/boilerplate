@@ -11,12 +11,14 @@ func NewConfig(vars *Vars) (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.SetConfigFile(fmt.Sprintf("%s.yaml", vars.Profile))
 
-	err := viper.ReadInConfig()
-	if err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
 	}
 
 	var config Config
-	err = viper.Unmarshal(&config)
-	return &config, err
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }

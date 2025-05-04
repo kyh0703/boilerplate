@@ -1,4 +1,4 @@
-default: build test
+default: build test air
 
 GO              := go
 
@@ -16,38 +16,58 @@ GIT_COMMIT      := $(if $(GIT_COMMIT),$(GIT_COMMIT),$(shell git rev-parse HEAD |
 
 .PHONY: dep
 dep:
-	@echo "dep:"
+	@echo "<dep>"
+	@git config --global url."http://git.bridgetec.co.kr/IPRON-NE/common".insteadOf https://gitlab.com/ipron-ne
+	@git config --global url."http://git.bridgetec.co.kr/IPRON-NE/core".insteadOf https://gitlab.com/ipron-core
 	@GOPRIVATE=$(PRIVATE_REPO) $(GO) mod tidy
 	@echo ""
 
 .PHONY: build
 build: dep
-	@echo "build:"
+	@echo "<build>"
 	@GO_PRIVATE=$(PRIVATE_REPO) GO111MODULE=on CGO_ENABLED=0 \
 		$(GO) build -ldflags "$(LDFLAGS)" -o $(BUILD_BIN)/$(TARGET) ./cmd/template
 	@echo ""
 
+.PHONY: build-admin
+build-admin:
+	@echo "<build-admin>"
+	go build -o bin/admin cmd/admin/main.go
+	@echo ""
+
+.PHONY: air
+air:
+	@echo "<air>"
+	@air -c .air.toml
+	@echo ""
+
 .PHONY: run
 run:
-	@echo "run:"
+	@echo "<run>"
 	@$(BUILD_BIN)/$(TARGET)
 	@echo ""
 
 .PHONY: watch
 watch:
-	@echo "watch:"
+	@echo "<watch>"
 	@air -c .air.toml
 	@echo ""
 
+.PHONY: sqlc
+sqlc:
+	@echo "<sqlc>"
+	@sqlc generate
+	@echo ""
+
 .PHONY: gen
-gen:
-	@echo "gen:"
+gen: sqlc
+	@echo "<gen>"
 	@CGO_ENABLED=0 $(GO) generate ./...
 	@echo ""
 
 .PHONY: test
 test:
-	@echo "test-result:"
+	@echo "<test-result>"
 	@mkdir -p $(BUILD_REPORT)
 	@$(GO) test -v \
 		-tags="unit integration" \
@@ -58,13 +78,13 @@ test:
 	@cat $(BUILD_REPORT)/test.log
 	@go-junit-report -in $(BUILD_REPORT)/test.log -out $(BUILD_REPORT)/test.xml
 	@echo ""
-	@echo "test-cover:"
+	@echo "<test-cover>"
 	@$(GO) tool cover -func $(BUILD_REPORT)/coverage.out
 	@echo ""
 
 .PHONY: lint
 lint:
-	@echo "lint:"
+	@echo "<lint>"
 	@mkdir -p $(BUILD_REPORT)
 	@golangci-lint run --out-format junit-xml --issues-exit-code 0 ./... > $(BUILD_REPORT)/lint.xml
 	@golangci-lint run ./...
@@ -72,7 +92,7 @@ lint:
 
 .PHONY: image
 image:
-	@echo "image:"
+	@echo "<image>"
 	@docker build -t $(TARGET):$(GIT_COMMIT) \
 		--build-arg CI_USER=$(CI_USER) \
 		--build-arg CI_TOKEN=$(CI_TOKEN) \
@@ -81,29 +101,22 @@ image:
 
 .PHONY: tag
 tag:
-	@echo "tag:"
+	@echo "<tag>"
 	@echo docker image tag $(TARGET):$(GIT_COMMIT) 100.100.103.167/ipron/$(TARGET):$(GIT_COMMIT)
 	@echo docker image tag $(TARGET):$(GIT_COMMIT) real-image-registry.ncr.gov-ntruss.com/ipron/$(TARGET):$(GIT_COMMIT)
 	@docker image tag $(TARGET):$(GIT_COMMIT) 100.100.103.167/ipron/$(TARGET):$(GIT_COMMIT)
 	@docker image tag $(TARGET):$(GIT_COMMIT) real-image-registry.ncr.gov-ntruss.com/ipron/$(TARGET):$(GIT_COMMIT)
 	@echo ""
 
-.PHONY: sqlc
-sqlc:
-	@echo "sqlc:"
-	@echo "sqlc generate"
-	@sqlc generate
-	@echo ""
-
 .PHONY: vendor
 vendor:
-	@echo "vendor:"
+	@echo "<vendor>"
 	@go mod vendor
 	@echo ""
 
 .PHONY: clean
 clean:
-	@echo "clean:"
+	@echo "<clean>"
 	@rm -f $(BUILD_BIN)/$(TARGET)
 	@rm -f $(BUILD_REPORT)/*
 	@echo ""

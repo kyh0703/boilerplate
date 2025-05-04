@@ -15,8 +15,8 @@ import (
 	"github.com/kyh0703/template/internal/pkg/response"
 )
 
-//counterfeiter:generate . PostHandler
-type PostHandler interface {
+//counterfeiter:generate . PostsHandler
+type PostsHandler interface {
 	Handler
 	CreateOne(c *fiber.Ctx) error
 	FindOne(c *fiber.Ctx) error
@@ -25,46 +25,46 @@ type PostHandler interface {
 	FindAll(c *fiber.Ctx) error
 }
 
-type postHandler struct {
+type postsHandler struct {
 	validate       *validator.Validate
 	authMiddleware middleware.AuthMiddleware
-	postRepository repository.PostRepository
+	postRepository repository.PostsRepository
 }
 
-func NewPostHandler(
+func NewPostsHandler(
 	validate *validator.Validate,
 	authMiddleware middleware.AuthMiddleware,
-	postRepository repository.PostRepository,
-) PostHandler {
-	return &postHandler{
+	postRepository repository.PostsRepository,
+) PostsHandler {
+	return &postsHandler{
 		validate:       validate,
 		authMiddleware: authMiddleware,
 		postRepository: postRepository,
 	}
 }
 
-func (h *postHandler) Table() []Mapper {
+func (p *postsHandler) Table() []Mapper {
 	return []Mapper{
 		Mapping(fiber.MethodPost, "/post",
-			h.authMiddleware.CurrentUser(), h.CreateOne),
+			p.authMiddleware.CurrentUser(), p.CreateOne),
 		Mapping(fiber.MethodGet, "/post/:id",
-			h.authMiddleware.CurrentUser(), h.FindOne),
+			p.authMiddleware.CurrentUser(), p.FindOne),
 		Mapping(fiber.MethodPatch, "/post/:id",
-			h.authMiddleware.CurrentUser(), h.UpdateOne),
+			p.authMiddleware.CurrentUser(), p.UpdateOne),
 		Mapping(fiber.MethodDelete, "/post/:id",
-			h.authMiddleware.CurrentUser(), h.DeleteOne),
+			p.authMiddleware.CurrentUser(), p.DeleteOne),
 		Mapping(fiber.MethodGet, "/posts",
-			h.authMiddleware.CurrentUser(), h.FindAll),
+			p.authMiddleware.CurrentUser(), p.FindAll),
 	}
 }
 
-func (h *postHandler) CreateOne(c *fiber.Ctx) error {
+func (p *postsHandler) CreateOne(c *fiber.Ctx) error {
 	var req post.CreatePostRequest
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := h.validate.Struct(&req); err != nil {
+	if err := p.validate.Struct(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -74,35 +74,35 @@ func (h *postHandler) CreateOne(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
 	arg.UserID = user.ID
 
-	newPost, err := h.postRepository.CreateOne(c.Context(), arg)
+	newPost, err := p.postRepository.CreateOne(c.Context(), arg)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	var res post.PostResponse
+	var res post.PostDto
 	copier.Copy(&res, &newPost)
 
 	return response.Success(c, fiber.StatusCreated, res)
 }
 
-func (h *postHandler) FindOne(c *fiber.Ctx) error {
+func (p *postsHandler) FindOne(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	findPost, err := h.postRepository.FindOne(c.Context(), int64(id))
+	findPost, err := p.postRepository.FindByID(c.Context(), int64(id))
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	var res post.PostResponse
+	var res post.PostDto
 	copier.Copy(&res, &findPost)
 
 	return response.Success(c, fiber.StatusOK, res)
 }
 
-func (h *postHandler) UpdateOne(c *fiber.Ctx) error {
+func (p *postsHandler) UpdateOne(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -113,18 +113,18 @@ func (h *postHandler) UpdateOne(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := h.validate.Struct(&req); err != nil {
+	if err := p.validate.Struct(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if _, err := h.postRepository.FindOne(c.Context(), int64(id)); err != nil {
+	if _, err := p.postRepository.FindByID(c.Context(), int64(id)); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fiber.NewError(fiber.StatusNotFound, err.Error())
 		}
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if err := h.postRepository.UpdateOne(c.Context(), model.PatchPostParams{
+	if err := p.postRepository.UpdateOne(c.Context(), model.PatchPostParams{
 		ID:      int64(id),
 		Title:   db.ToNullString(req.Name),
 		Content: db.ToNullString(req.Description),
@@ -135,28 +135,28 @@ func (h *postHandler) UpdateOne(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (h *postHandler) DeleteOne(c *fiber.Ctx) error {
+func (p *postsHandler) DeleteOne(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := h.postRepository.DeleteOne(c.Context(), int64(id)); err != nil {
+	if err := p.postRepository.DeleteOne(c.Context(), int64(id)); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func (h *postHandler) FindAll(c *fiber.Ctx) error {
+func (p *postsHandler) FindAll(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
 
-	postList, err := h.postRepository.GetList(c.Context(), user.ID)
+	postList, err := p.postRepository.Pagination(c.Context(), user.ID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	var res []post.PostResponse
+	var res []post.PostDto
 	copier.Copy(&res, &postList)
 
 	return response.Success(c, fiber.StatusOK, res)
